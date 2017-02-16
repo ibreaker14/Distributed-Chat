@@ -2,10 +2,7 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.json.*;
 
 /*****************************//**
 * \brief It implements a distributed chat. 
@@ -17,51 +14,7 @@ public class Chat {
 /*
    Json Messages:
  
-  {
-        "type" :  "JOIN",
-        "parameters" :
-               {   
-                    "myAlias" : string,
-                    "myPort"  : number
-               }
-   }
- 
-   {
-        "type" :  "ACCEPT",
-        "parameters" :
-               {   
-                   "ipPred"    : string,
-                   "portPred"  : number
-               }
-    }
- 
-    {
-         "type" :  "LEAVE",
-         "parameters" :
-         {
-             "ipPred"    : string,
-             "portPred"  : number
-         }
-    }
-
-   {
-         "type" :  "Put",
-        "parameters" :
-         {
-             "aliasSender"    : string,
-             "aliasReceiver"  : string,
-             "message"        : string
-        }
-   }
- 
- {
-        "type" :  "NEWSUCCESSOR",
-        "parameters" :
-        {
-            "ipSuccessor"    : string,
-            "portSuccessor"  : number
-        }
- }
+m
  */
     
 // My info
@@ -183,11 +136,20 @@ public class Chat {
       }
   }
   
-  public static void main(String[] args) {
+  public static void main(String[] args) throws JSONException {
       
       if (args.length < 2 ) {  
           throw new IllegalArgumentException("Parameter: <alias> <myPort>");
       }
       Chat chat = new Chat(args[0], Integer.parseInt(args[1]));
+      // https://www.codevoila.com/post/65/java-json-tutorial-and-example-json-java-orgjson
+      String json = "";
+      ArrayList<String> types = new ArrayList<String>();
+      JSONArray jArray = (JSONArray) new JSONTokener(json).nextValue(); //creates JSON OBJECT array
+      for(int x = 0; x < jArray.length(); x++) {
+    	  JSONObject object = jArray.getJSONObject(x);
+    	  types.add(object.getString("type"));
+      }
+      
   }
 }
