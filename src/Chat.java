@@ -2,11 +2,9 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
+import org.json.*;
 
+import java.util.concurrent.locks.*;
 /*****************************//**
 * \brief It implements a distributed chat. 
 * It creates a ring and delivers messages
@@ -14,6 +12,8 @@ import org.json.simple.parser.ParseException;
 **********************************/
 public class Chat {
   
+	
+	
 /*
    Json Messages:
  
@@ -80,11 +80,10 @@ public class Chat {
 * \class Server class "chat.java" 
 * \brief It implements the server
 **********************************/ 
-  private class Server implements Runnable 
-  {
-    public Server()
-    {
+  private class Server implements Runnable {
+    public Server() {
     }
+    
 /*****************************//**
 * \brief It allows the system to interact with the participants. 
 **********************************/   
@@ -133,28 +132,27 @@ public class Chat {
     {
       while (true)
       {
-          /*
-          Create a simple user interface
+          // Create a simple user interface
         
-          The first thing to do is to join
+         /* TODO  The first thing to do is to join
              ask the ip and port when joining and set ipSuccessor = ip, portSuccessor = port
-          Socket socket = new Socket(ipSuccessor, portSuccessor);
-          
+          Socket socket = new Socket(ipSuccessor, portSuccessor);*/
           
           // Create the mssages m using JsonWriter and send it as stream
-          
-          ObjectOutputStream oos = new
-          ObjectOutputStream(socket.getOutputStream());
-          ObjectInputStream ois = new
-          ObjectInputStream(socket.getInputStream());
-          oos.write(m);   this sends the message
-            ois.read();    reads the response and parse it using JsonParser
+          	
+    	  InetAddress ip = InetAddress.getByName("localhost");//temp
+    	  Socket socket = new Socket(ip,55555);//temp
+    	  
+    	  //Socket socket = new Socket(ipSuccessor,portSuccessor);
+          ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+          ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+          oos.write(m);  //this sends the message (json stream)
+          ois.read();   // reads the response and parse it using JsonParser
           socket.close();
            
-           //TODO Use mutex to handle race condition when reading and writing the global variable (ipSuccessor, 
-                portSuccessor, ipPredecessor, portPredecessor)
+          /* TODO Use mutex to handle race condition when reading and writing the global variable (ipSuccessor, 
+                portSuccessor, ipPredecessor, portPredecessor)*/
            
-           */
       }
     }
   }
@@ -191,3 +189,16 @@ public class Chat {
       Chat chat = new Chat(args[0], Integer.parseInt(args[1]));
   }
 }
+
+
+
+// mutex example
+
+/*private final Lock _mutex = new ReentrantLock(true);
+
+_mutex.lock();
+
+// your protected code here
+
+_mutex.unlock();*/
+
