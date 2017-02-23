@@ -5,17 +5,47 @@ import java.util.ArrayList;
 import org.json.*;
 
 public class test2 {
-	public static void main(String[] args) throws JSONException{
+	public static void main(String[] args){
 		String json = readFile("messages.json");
 
 	    //System.out.println(json);
 	    ArrayList<String> types = new ArrayList<String>();
-	    JSONObject object = new JSONObject(json);
-	    String x = object.getString("type");
+	    JSONObject object = null;
+		try {
+			object = new JSONObject(json);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    String x = null;
+		try {
+			x = object.getString("type");
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	    System.out.println(x);
-	    JSONObject param = new JSONObject(json).getJSONObject("parameters");
-	    String y = param.getString("myAlias");
-	    String z = param.getString("myPort");
+	    JSONObject param = null;
+		try {
+			param = new JSONObject(json).getJSONObject("parameters");
+		} catch (JSONException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	    String y = null;
+		try {
+			y = param.getString("myAlias");
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    String z = null;
+		try {
+			z = param.getString("myPort");
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 	    System.out.println(y);
 	    System.out.println(z);

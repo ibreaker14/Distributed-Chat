@@ -11,83 +11,137 @@ import java.util.concurrent.locks.*;
 * using flooding 
 **********************************/
 public class Chat {
-  
-	
-	
+
 /*
    Json Messages:
  
-m
+  {
+        "type" :  "JOIN",
+        "parameters" :
+               {   
+                    "myAlias" : string,
+                    "myPort"  : number
+               }
+   }
+ 
+   {
+        "type" :  "ACCEPT",
+        "parameters" :
+               {   
+                   "ipPred"    : string,
+                   "portPred"  : number
+               }
+    }
+ 
+    {
+         "type" :  "LEAVE",
+         "parameters" :
+         {
+             "ipPred"    : string,
+             "portPred"  : number
+         }
+    }
+
+   {
+         "type" :  "Put",
+        "parameters" :
+         {
+             "aliasSender"    : string,
+             "aliasReceiver"  : string,
+             "message"        : string
+        }
+   }
+ 
+ {
+        "type" :  "NEWSUCCESSOR",
+        "parameters" :
+        {
+            "ipSuccessor"    : string,
+            "portSuccessor"  : number
+        }
+ }
  */
-    
+
 // My info
-    public String alias;
-    public int myPort;
+	public static String myAlias;
+	public static int myPort;
 // Successor
-    public String ipSuccessor;
-    public int portSuccessor;
+	public static String ipSuccessor;
+	public static int portSuccessor;
 // Predecessor
-    public String ipPredecessor;
-    public int portPredecessor;
+	public static String ipPredecessor;
+	public static int portPredecessor;
     
  
   
+  /*new class - Server===================================================================================================================*/
+
 /*****************************//**
 * \class Server class "chat.java" 
 * \brief It implements the server
 **********************************/ 
-  private class Server implements Runnable {
-    public Server() {
-    }
+	private static class Server implements Runnable {
+		public Server() {}
     
 /*****************************//**
 * \brief It allows the system to interact with the participants. 
 **********************************/   
-    public void run() {
-        try {
-            ServerSocket servSock = new ServerSocket(myPort);
-            while (true)
-            {
-                /*
-                 Socket clntSock = servSock.accept(); // Get client connections
-                 Create a new thread to handle the connection
-           
-                 ObjectInputStream  ois = new
-                 ObjectInputStream(clntSock.getInputStream());
-                 ObjectOutputStream oos = new
-                 ObjectOutputStream(clntSock.getOutputStream());
-                 ois.read();    reads the message using JsonParser and handle the messages
-          
-                 oos.write(m);   only if the message requires a response
-                 clntSock.close();
-                 */
-            }
-            } catch (IOException e)
-            {
-                // Handle the exception
-            }
-        }
-  }
+		public void run() {
+			Socket clntSock = null;
+			ServerSocket servSock = null;
+			try {
+				//servSock = new ServerSocket(myPort);
+				servSock = new ServerSocket(6666);//test
+				while (true) {
+					System.out.println("Server running on port "+servSock.getLocalPort());
+					try{
+						clntSock = servSock.accept(); // Get client connections
+					}catch(IOException e){
+						e.printStackTrace();
+					}
+					//Create a new thread to handle the connection
+					System.out.println("Server connected to port "+clntSock.getRemoteSocketAddress());
 
-    
+					ObjectInputStream  ois = new ObjectInputStream(clntSock.getInputStream());
+					ObjectOutputStream oos = new ObjectOutputStream(clntSock.getOutputStream());
+
+					//String m = "I am a message";
+					//ois.read();    //reads the message using JsonParser and handle the messages
+					System.out.println(ois.read());
+					//oos.write(m);   //TODO only if the message requires a response
+					oos.writeObject("hihhhii");   //test message
+				}
+			}catch (IOException e) {
+					// TODO Handle the exception
+				e.printStackTrace();
+			}finally{
+				try{
+					clntSock.close();
+				}catch(IOException e){
+					e.printStackTrace();
+				}	
+			}
+		}//end server run
+	}//end Server class
+
+
+
+/*new class - client ================================================================================================================*/
     
 /*****************************//*
 * \brief It implements the client
 **********************************/
-  private class Client implements Runnable 
-  {       
+  //private class Client implements Runnable {       
+ 	private static class Client implements Runnable {       
     
-    public Client()
-    {
-    }
+    public Client(){}
 
 /*****************************//**
 * \brief It allows the user to interact with the system. 
 **********************************/    
-    public void run()
-    {
-      while (true)
-      {
+    public void run(){
+      while (true) {
+
           // Create a simple user interface
         
          /* TODO  The first thing to do is to join
@@ -96,31 +150,57 @@ m
           
           // Create the mssages m using JsonWriter and send it as stream
           	
-    	  InetAddress ip = InetAddress.getByName("localhost");//temp
-    	  Socket socket = new Socket(ip,55555);//temp
+    	  InetAddress ip = null;
+    	  Socket socket = null;
+		try {
+			ip = InetAddress.getByName("127.0.0.1");
+			socket = new Socket(ip,6666);
+			System.out.println("Client Running on port " +socket.getLocalPort()+" and connected to server: "+socket.getRemoteSocketAddress());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}//temp
+    	  //temp
     	  
     	  //Socket socket = new Socket(ipSuccessor,portSuccessor);
-          ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-          ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-          oos.write(m);  //this sends the message (json stream)
-          ois.read();   // reads the response and parse it using JsonParser
+		ObjectOutputStream oos = null;
+		ObjectInputStream ois = null; 
+          try {
+			oos = new ObjectOutputStream(socket.getOutputStream());
+			ois = new ObjectInputStream(socket.getInputStream());
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+          System.out.println("blah blah blah");//delete me
+
+
+          try{
+          //oos.write(m);  //TODO this sends the message (json stream)
+          System.out.println("server message: " + ois.readObject().toString());   // reads the response and parse it using JsonParser
+          System.out.println("test read from server: "+ois.read()); //test read
           socket.close();
-           
+          }catch(Exception e){
+        	  e.printStackTrace();
+		  }
+         
+          }
           /* TODO Use mutex to handle race condition when reading and writing the global variable (ipSuccessor, 
                 portSuccessor, ipPredecessor, portPredecessor)*/
            
       }
     }
-  }
+  
   
 /*****************************//**
 * Starts the threads with the client and server:
 * \param Id unique identifier of the process
 * \param port where the server will listen
 **********************************/  
-  public Chat(String alias, int myPort) {
+  public Chat(String myAlias, int myPort) {
      
-      this.alias = alias;
+      this.myAlias = myAlias;
       this.myPort = myPort;
       // Initialization of the peer
       Thread server = new Thread(new Server());
@@ -139,18 +219,23 @@ m
   
   public static void main(String[] args) throws JSONException {
       
-      if (args.length < 2 ) {  
-          throw new IllegalArgumentException("Parameter: <alias> <myPort>");
+/*      if (args.length < 2 ) {  
+          throw new IllegalArgumentException("Parameter: <myAlias> <myPort>");
       }
+      
       Chat chat = new Chat(args[0], Integer.parseInt(args[1]));
+      */
+      Chat chat = new Chat("127.0.0.1",555);
+
+
       // https://www.codevoila.com/post/65/java-json-tutorial-and-example-json-java-orgjson
-      String json = "";
+      /*String json = "";
       ArrayList<String> types = new ArrayList<String>();
       JSONArray jArray = (JSONArray) new JSONTokener(json).nextValue(); //creates JSON OBJECT array
       for(int x = 0; x < jArray.length(); x++) {
     	  JSONObject object = jArray.getJSONObject(x);
     	  types.add(object.getString("type"));
-      }
+      }*/
       
   }
 }

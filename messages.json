@@ -1,0 +1,45 @@
+{
+        "type" :  "JOIN",
+        "parameters" :
+               {
+                    "myAlias" : string,
+                    "myPort"  : number
+               }
+   }
+
+   {
+        "type" :  "ACCEPT",
+        "parameters" :
+               {
+                   "ipPred"    : string,
+                   "portPred"  : number
+               }
+    }
+
+    {
+         "type" :  "LEAVE",
+         "parameters" :
+         {
+             "ipPred"    : string,
+             "portPred"  : number
+         }
+    }
+
+   {
+         "type" :  "Put",
+        "parameters" :
+         {
+             "aliasSender"    : string,
+             "aliasReceiver"  : string,
+             "message"        : string
+        }
+   }
+
+ {
+        "type" :  "NEWSUCCESSOR",
+        "parameters" :
+        {
+            "ipSuccessor"    : string,
+            "portSuccessor"  : number
+        }
+ }
