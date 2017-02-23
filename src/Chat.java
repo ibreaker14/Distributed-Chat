@@ -107,9 +107,13 @@ public class Chat {
 
 					//String m = "I am a message";
 					//ois.read();    //reads the message using JsonParser and handle the messages
-					System.out.println(ois.read());
+					try{
+					System.out.println("Message from client: "+ois.readObject().toString());
+					}catch(Exception e){}
 					//oos.write(m);   //TODO only if the message requires a response
 					oos.writeObject("hihhhii");   //test message
+				/*	oos.close();
+					ois.close();*/
 				}
 			}catch (IOException e) {
 					// TODO Handle the exception
@@ -173,14 +177,25 @@ public class Chat {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-          System.out.println("blah blah blah");//delete me
+        //  System.out.println("blah blah blah");//delete me
 
 
           try{
           //oos.write(m);  //TODO this sends the message (json stream)
+          JSONObject  obj = new JSONObject();
+          obj.put("type","JOIN");
+          Map<String, Object> t = new HashMap<String, Object>();
+          t.put("myAlias", socket.getRemoteSocketAddress());
+          t.put("myPort",socket.getLocalPort());
+          obj.put("parameters",t);
+
+          oos.writeObject(obj.toString());
           System.out.println("server message: " + ois.readObject().toString());   // reads the response and parse it using JsonParser
-          System.out.println("test read from server: "+ois.read()); //test read
           socket.close();
+          Scanner s = new Scanner(System.in);
+          int i = s.nextInt();
+         /* ois.close();
+          oos.close();*/
           }catch(Exception e){
         	  e.printStackTrace();
 		  }
