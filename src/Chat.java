@@ -69,7 +69,7 @@ public class Chat{
 				//does operations based on json commands
 				switch(operation){ 
 					case "JOIN": //TODO 
-						System.out.println("\njoin!!!\n");
+						//System.out.println("\njoin!!!\n");
 						try{
 							
 
@@ -96,7 +96,7 @@ public class Chat{
 						break;
 
 					case "NEWSUCCESSOR":
-						System.out.println("\nnewsuccessor!!!\n");
+						//System.out.println("\nnewsuccessor!!!\n");
 						try{
 							portSuccessor = ((JSONObject)msg.get("parameters")).getInt("portSuccessor");
 
@@ -191,7 +191,6 @@ public class Chat{
 
 					
 					JSONObject acceptedMsg = new JSONObject(ois.readObject().toString()); //from server: accept (ip, portPred)
-					// if(acceptedMsg.get("type").toString().equals("ACCEPT"))
 					portPredecessor = ((JSONObject)acceptedMsg.get("parameters")).getInt("portPred");
 					socket.close();
 
