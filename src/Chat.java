@@ -180,9 +180,7 @@ public class Chat{
 	public void run(){
 		while (true) {
 		try {
-			// int useroption = validInt(scan ,"What would you like to do? \n 1) JOIN\n 2) LEAVE\n 3) SEND MESSAGE\n 4) VIEW NEIGHBORS",4);//OG
 			int useroption = validInt(scan ,"\nWhat would you like to do? \n"+(joined ? " 1) LEAVE\n" : " 1) JOIN\n")+" 2) SEND MESSAGE\n 3) DISPLAY PROFILE", 3);
-			//scan.nextLine(); //consumes return char
 
 			switch(useroption){
 			case 1: //JOIN or LEAVE
@@ -247,7 +245,7 @@ public class Chat{
 						
 						joined = false; //upon successful leave, joined becomes false
 
-						System.out.println("\n(PRED, SUCC): "+portPredecessor+", " +portSuccessor);//delete me
+						System.out.println("\n(PRED, SUCC): "+portPredecessor+", " +portSuccessor);
 
 					}catch(ConnectException e){
 						System.out.println("Can't connect to this port");
@@ -265,10 +263,11 @@ public class Chat{
 					System.out.println("\nYou must join a port first");
 				}else{
 					// send a message
+					//FLOOD: pass message on until it reaches dest or self
 
 					//Create JSON Message
 					//TODO capture input for sender Alias, Receiver alias, and message
-					/*JSONObject joinObj = JSONMessage("LEAVE",aliasSender, aliasReiver, message);
+					/*JSONObject joinObj = JSONMessage("PUT",aliasSender, aliasReiver, message);
 					oos.writeObject(joinObj.toString());*/
 				}
 				break;
@@ -306,27 +305,26 @@ public class Chat{
 **********************************/  
 	public Chat(String myAlias, int myPort) {
 
-	this.myAlias = myAlias;
-	this.myPort = myPort;
+		this.myAlias = myAlias;
+		this.myPort = myPort;
 
-	this.ipSuccessor = localhost;
-	this.ipPredecessor = localhost;
-	this.portSuccessor = myPort;
-	this.portPredecessor = myPort;
+		this.ipSuccessor = localhost;
+		this.ipPredecessor = localhost;
+		this.portSuccessor = myPort;
+		this.portPredecessor = myPort;
 
 
-	// Initialization of the peer
-	Thread server = new Thread(new Server(this.myAlias, this.myPort));
-	Thread client = new Thread(new Client(this.myAlias, this.myPort));
-	server.start();
-	client.start();
-	try {
-		client.join();
-		server.join();
-	} catch (InterruptedException e)
-	{
-		// Handle Exception
-	}
+		// Initialization of the peer
+		Thread server = new Thread(new Server(this.myAlias, this.myPort));
+		Thread client = new Thread(new Client(this.myAlias, this.myPort));
+		server.start();
+		client.start();
+		try {
+			client.join();
+			server.join();
+		} catch (InterruptedException e){
+			/e.printStackTrace();
+		}
 	}
 
 	public static void main(String[] args) throws JSONException {
