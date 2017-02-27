@@ -51,7 +51,6 @@ public class Chat{
 		try{
 		//create the server socket
 		servSock = new ServerSocket(port);
-		System.out.println("Server listening on port "+servSock.getLocalPort());
 		while (true) {
 			clntSock = servSock.accept(); // Get client connections
 			try{
@@ -73,14 +72,14 @@ public class Chat{
 						try{
 
 							JSONObject acceptObj = JSONMessage("ACCEPT",localhost,portPredecessor);//write accept msg to my pred
-							JSONObject newSuccessorObj = JSONMessage("NEWSUCCESSOR",localhost,portPredecessor); //new predecessor
+							JSONObject newSuccessorObj = JSONMessage("NEWSUCCESSOR",localhost,((JSONObject)msg.get("parameters")).getInt("myPort")); //new predecessor
 
 							portPredecessor = ((JSONObject)msg.get("parameters")).getInt("myPort"); //replace my pred with To_Join
 
 							oos.writeObject(acceptObj.toString()); //send to my pred (to client: my pred)
 
 							clntSock.close();
-							clntSock = new Socket(localhost,((JSONObject)newSuccessorObj.get("parameters")).getInt("portSuccessor")); //send to my old predecessor
+							clntSock = new Socket(localhost,((JSONObject)acceptObj.get("parameters")).getInt("portPred")); //send to my old predecessor
 							oos = new ObjectOutputStream(clntSock.getOutputStream());
 							oos.writeObject(newSuccessorObj.toString());
 							clntSock.close();
@@ -186,8 +185,10 @@ public class Chat{
 			//scan.nextLine(); //consumes return char
 
 			switch(useroption){
-			case 1: //JOIN
+			case 1: //JOIN or LEAVE
 				if(!joined){
+
+					//JOIN
 					int port = validInt(scan, "Enter the port you would like to join");
 					
 					try{
