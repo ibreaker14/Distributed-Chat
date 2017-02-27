@@ -323,7 +323,7 @@ public class Chat{
 			client.join();
 			server.join();
 		} catch (InterruptedException e){
-			/e.printStackTrace();
+			e.printStackTrace();
 		}
 	}
 
