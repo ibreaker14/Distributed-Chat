@@ -32,122 +32,147 @@ public class Chat{
 * \brief It implements the server
 **********************************/ 
 	private static class Server implements Runnable{
-	private Socket clntSock = null;
-	private ServerSocket servSock = null;
-	private String alias = null;
-	private int port =0;
-	String operation = null;
-	JSONObject msg = null;
+		private Socket clntSock = null;
+		private ServerSocket servSock = null;
+		private String alias = null;
+		private int port =0;
+		String operation = null;
+		JSONObject msg = null;
 
-	public Server(String a, int p) {
-		alias = a;
-		port = p;
-	}
-	
-/*****************************//**
-* \brief It allows the system to interact with the participants. 
-**********************************/   
-	public void run() {     
-		try{
-		//create the server socket
-		servSock = new ServerSocket(port);
-		while (true) {
-			clntSock = servSock.accept(); // Get client connections
-			try{
-				//Create io streams
-				ObjectInputStream  ois = new ObjectInputStream(clntSock.getInputStream());
-				ObjectOutputStream oos = new ObjectOutputStream(clntSock.getOutputStream());
-
-				//read json object
-				try{
-					msg = new JSONObject(ois.readObject().toString());
-					operation = msg.getString("type");
-				}catch(JSONException e){
-					e.printStackTrace();
-				}
-
-				//does operations based on json commands
-				switch(operation){ 
-					case "JOIN": //TODO 
-						try{
-
-							JSONObject acceptObj = JSONMessage("ACCEPT",localhost,portPredecessor);//write accept msg to my pred
-							JSONObject newSuccessorObj = JSONMessage("NEWSUCCESSOR",localhost,((JSONObject)msg.get("parameters")).getInt("myPort")); //new predecessor
-
-							portPredecessor = ((JSONObject)msg.get("parameters")).getInt("myPort"); //replace my pred with To_Join
-
-							oos.writeObject(acceptObj.toString()); //send to my pred (to client: my pred)
-
-							clntSock.close();
-							clntSock = new Socket(localhost,((JSONObject)acceptObj.get("parameters")).getInt("portPred")); //send to my old predecessor
-							oos = new ObjectOutputStream(clntSock.getOutputStream());
-							oos.writeObject(newSuccessorObj.toString());
-							clntSock.close();
-
-						}catch(IOException e){
-							e.printStackTrace();
-						}catch(JSONException e){
-							e.printStackTrace();
-						}
-
-						break;
-
-					case "NEWSUCCESSOR":
-						try{
-							portSuccessor = ((JSONObject)msg.get("parameters")).getInt("portSuccessor");
-
-						}catch(JSONException e){
-							e.printStackTrace();
-						}
-						break;
-					case "LEAVE":
-						try{
-							portPredecessor = ((JSONObject)msg.get("parameters")).getInt("portPred");
-
-							clntSock.close();
-							clntSock = new Socket(localhost,portPredecessor); //send to my updated predecessor
-							JSONObject newSuccessorObj = JSONMessage("NEWSUCCESSOR",localhost,myPort); //old predecessor's new successor is me
-							oos = new ObjectOutputStream(clntSock.getOutputStream());
-							oos.writeObject(newSuccessorObj.toString());
-							clntSock.close();
-
-						}catch(JSONException e){
-							e.printStackTrace();
-						}catch(Exception e){
-							e.printStackTrace();
-						}
-
-
-						break;
-					default:
-						System.out.print("System has encountered a problem --> ");
-						System.out.println("message"+msg);
-						break;
-				}	
-						
-
-				// close streams
-				oos.close();
-				ois.close();
-
-				clntSock.close();
-			}catch(NullPointerException e){
-				e.printStackTrace();
-				System.out.println("Server exception");
-			}catch(ConnectException e){
-				System.out.println("This port does not exist");
-			}
+		public Server(String a, int p) {
+			alias = a;
+			port = p;
 		}
 		
-		}catch(IOException e){
-		e.printStackTrace();
-		}catch(ClassNotFoundException e){
-		e.printStackTrace();
-		}
-	}//end server run
+	/*****************************//**
+	* \brief It allows the system to interact with the participants. 
+	**********************************/   
+		public void run() {     
+			try{
+			//create the server socket
+			servSock = new ServerSocket(port);
+			while (true) {
+				clntSock = servSock.accept(); // Get client connections
+				try{
+					//Create io streams
+					ObjectInputStream  ois = new ObjectInputStream(clntSock.getInputStream());
+					ObjectOutputStream oos = new ObjectOutputStream(clntSock.getOutputStream());
+
+					//read json object
+					try{
+						msg = new JSONObject(ois.readObject().toString());
+						operation = msg.getString("type");
+					}catch(JSONException e){
+						e.printStackTrace();
+					}
+
+					//does operations based on json commands
+					switch(operation){ 
+						case "JOIN":
+							try{
+
+								JSONObject acceptObj = JSONMessage("ACCEPT",localhost,portPredecessor);//write accept msg to my pred
+								JSONObject newSuccessorObj = JSONMessage("NEWSUCCESSOR",localhost,((JSONObject)msg.get("parameters")).getInt("myPort")); //new predecessor
+
+								portPredecessor = ((JSONObject)msg.get("parameters")).getInt("myPort"); //replace my pred with To_Join
+
+								oos.writeObject(acceptObj.toString()); //send to my pred (to client: my pred)
+
+								clntSock.close();
+								clntSock = new Socket(localhost,((JSONObject)acceptObj.get("parameters")).getInt("portPred")); //send to my old predecessor
+								oos = new ObjectOutputStream(clntSock.getOutputStream());
+								oos.writeObject(newSuccessorObj.toString());
+								clntSock.close();
+
+							}catch(IOException e){
+								e.printStackTrace();
+							}catch(JSONException e){
+								e.printStackTrace();
+							}
+
+							break;
+
+						case "NEWSUCCESSOR":
+							try{
+								portSuccessor = ((JSONObject)msg.get("parameters")).getInt("portSuccessor");
+
+							}catch(JSONException e){
+								e.printStackTrace();
+							}
+							break;
+						case "PUT":
+							try {
+								
+								String message = ((JSONObject)msg.get("parameters")).getString("message");
+								String receiverAlias = ((JSONObject)msg.get("parameters")).getString("aliasReceiver");
+								String senderAlias = ((JSONObject)msg.get("parameters")).getString("aliasSender");
+
+								if(senderAlias.equalsIgnoreCase(myAlias)) {
+									System.out.println("\nClient has either been disconnected or cannot be found");
+									System.out.println("\nWhat would you like to do? \n 1) LEAVE\n 2) SEND MESSAGE\n 3) DISPLAY PROFILE");
+								}else if(receiverAlias.equalsIgnoreCase(alias)) {
+									System.out.println("\n--> "+senderAlias+": "+message);
+									System.out.println("\nWhat would you like to do? \n 1) LEAVE\n 2) SEND MESSAGE\n 3) DISPLAY PROFILE");
+									
+								}else {
+									clntSock = new Socket(localhost,portSuccessor);
+									oos = new ObjectOutputStream(clntSock.getOutputStream());
+									oos.writeObject(msg.toString());
+								}
+							} catch (JSONException e) {
+								e.printStackTrace();
+							}
+								
+							break;
+						case "LEAVE":
+							try{
+								portPredecessor = ((JSONObject)msg.get("parameters")).getInt("portPred");
+
+								clntSock.close();
+								clntSock = new Socket(localhost,portPredecessor); //send to my updated predecessor
+								JSONObject newSuccessorObj = JSONMessage("NEWSUCCESSOR",localhost,myPort); //old predecessor's new successor is me
+								oos = new ObjectOutputStream(clntSock.getOutputStream());
+								oos.writeObject(newSuccessorObj.toString());
+								clntSock.close();
+								Scanner scan = new Scanner(System.in);
+
+
+							}catch(JSONException e){
+								e.printStackTrace();
+							}catch(Exception e){
+								e.printStackTrace();
+							}
+
+
+							break;
+						default:
+							System.out.print("System has encountered a problem --> ");
+							System.out.println("message"+msg);
+							break;
+					}	
+							
+
+					// close streams
+					oos.close();
+					ois.close();
+
+					clntSock.close();
+				}catch(NullPointerException e){
+					e.printStackTrace();
+					System.out.println("Server exception");
+				}catch(ConnectException e){
+					System.out.println("This port does not exist");
+				}
+			}
+			
+			}catch(IOException e){
+			e.printStackTrace();
+			}catch(ClassNotFoundException e){
+			e.printStackTrace();
+			}
+		}//end server run
 	}//end Server class
-
-
+	
 
 /*new class - client ================================================================================================================*/
 	
@@ -262,13 +287,31 @@ public class Chat{
 				if(!joined){
 					System.out.println("\nYou must join a port first");
 				}else{
-					// send a message
-					//FLOOD: pass message on until it reaches dest or self
+					boolean validMessage = true;
+					String receiverAlias = null;
+					scan.nextLine();
+					
+					do{
+						System.out.println("Who do you want to send a message to?");
+						receiverAlias = scan.nextLine();
+						if(receiverAlias.equalsIgnoreCase(myAlias)){
+							System.out.println("\nYou cannot send messages to yourself!\n");
+							validMessage = false;
+						}else{
+							validMessage = true;
+						}
+					}while(!validMessage);
 
+					System.out.println("What do you want to say?");
+					String message = scan.nextLine();
+					System.out.println("Message sent");
 					//Create JSON Message
-					//TODO capture input for sender Alias, Receiver alias, and message
-					/*JSONObject joinObj = JSONMessage("PUT",aliasSender, aliasReiver, message);
-					oos.writeObject(joinObj.toString());*/
+					JSONObject sendObj = JSONMessage("PUT",alias, myPort,receiverAlias.trim(),message.trim()); 
+
+					socket = new Socket(ip,portSuccessor);
+					oos = new ObjectOutputStream(socket.getOutputStream());
+					oos.writeObject(sendObj.toString());
+					
 				}
 				break;
 
@@ -342,51 +385,37 @@ public class Chat{
 	public static JSONObject JSONMessage(String type, String alias, int port, String... msgArgs){
 		JSONObject  obj = new JSONObject();
 		JSONObject params = new JSONObject();
-				try {
-					obj.put("type",type);
-					obj.put("parameters", params);
-				} catch (JSONException e1) {
-					e1.printStackTrace();
-				}
-				
+			try {
+				obj.put("type",type);
+				obj.put("parameters", params);
 
-		if (type.equals("JOIN")){
-			try{
-				params.put("myAlias", alias);
-				params.put("myPort", port);
-			}catch(JSONException e){
-				e.printStackTrace();
+				if (type.equals("JOIN")){
+					params.put("myAlias", alias);
+					params.put("myPort", port);
+
+				}else if (type.equals("ACCEPT") || type.equals("LEAVE")){
+					params.put("ipPred", localhost);
+					params.put("portPred", port);
+
+				}else if(type.equals("NEWSUCCESSOR")){
+					params.put("ipSuccessor", localhost);
+					params.put("portSuccessor", port);
+
+				}else if(type.equals("PUT")){
+						params.put("aliasSender", alias);
+					params.put("aliasReceiver", msgArgs[0]);
+					params.put("message", msgArgs[1]);
+
+				}
+			} catch (JSONException e1) {
+				e1.printStackTrace();
 			}
-		}else if (type.equals("ACCEPT") || type.equals("LEAVE")){
-			try{
-				params.put("ipPred", localhost);
-				params.put("portPred", port);
-			}catch(JSONException e){
-				e.printStackTrace();
-			}
-		}else if(type.equals("NEWSUCCESSOR")){
-			try{
-				params.put("ipSuccessor", localhost);
-				params.put("portSuccessor", port);
-			}catch(JSONException e){
-				e.printStackTrace();
-			}
-		}else if(type.equals("PUT")){
-			try{
-				params.put("aliasSender", alias);
-				params.put("aliasReceiver", msgArgs[0]);
-				params.put("message", msgArgs[1]);
-			}catch(JSONException e){
-				e.printStackTrace();
-			}
-		}
 		return obj;
 		}
 
 
 		//keeps asking user for valid integer
-		public static int validInt(Scanner in, String message, int... limit){
-			// Scanner in = new Scanner(System.in);
+		public static int validInt(Scanner in, String message, int... limit){			
 			int n = 0;
 			while(true){
 				System.out.println(message + ": ");
@@ -422,4 +451,3 @@ _mutex.lock();
 // your protected code here
 
 _mutex.unlock();*/
-
