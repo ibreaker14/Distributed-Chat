@@ -1,0 +1,138 @@
+\hypertarget{class_chat}{}\section{Chat Class Reference}
+\label{class_chat}\index{Chat@{Chat}}
+
+
+This program implements a distributed chat. It creates a ring and delivers messages using flooding.  
+
+
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{class_chat_1_1_client}{Client}
+\begin{DoxyCompactList}\small\item\em It implements the client. \end{DoxyCompactList}\item 
+class \hyperlink{class_chat_1_1_server}{Server}
+\begin{DoxyCompactList}\small\item\em It implements the server. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_chat_a2e9b5fbe06ab99eee05f0fc6af6dc887}{Chat} (String \hyperlink{class_chat_a35d411ee8dc3a5b258f9196b45ac4cc9}{my\+Alias}, int \hyperlink{class_chat_adf3015afad6879dd1b21a181ce21b16b}{my\+Port})
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{class_chat_a04e26027ad460092250efa75ce7a8a19}\label{class_chat_a04e26027ad460092250efa75ce7a8a19}} 
+static void {\bfseries main} (String\mbox{[}$\,$\mbox{]} args)  throws J\+S\+O\+N\+Exception 
+\item 
+static J\+S\+O\+N\+Object \hyperlink{class_chat_aedb8547771734d3275f8acfe106ba332}{J\+S\+O\+N\+Message} (String type, String alias, int port, String... msg\+Args)
+\begin{DoxyCompactList}\small\item\em Creates J\+S\+ON Messages based on type. \end{DoxyCompactList}\item 
+static int \hyperlink{class_chat_a67bee28b73b6a5dac87992427e447a83}{valid\+Int} (Scanner in, String message, int... limit)
+\begin{DoxyCompactList}\small\item\em Asks user for valid numerical input. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{class_chat_a35d411ee8dc3a5b258f9196b45ac4cc9}\label{class_chat_a35d411ee8dc3a5b258f9196b45ac4cc9}} 
+static String \hyperlink{class_chat_a35d411ee8dc3a5b258f9196b45ac4cc9}{my\+Alias} = null
+\begin{DoxyCompactList}\small\item\em process alias \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_chat_adf3015afad6879dd1b21a181ce21b16b}\label{class_chat_adf3015afad6879dd1b21a181ce21b16b}} 
+static int \hyperlink{class_chat_adf3015afad6879dd1b21a181ce21b16b}{my\+Port} = 0
+\begin{DoxyCompactList}\small\item\em process port \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_chat_a8b33daf1786a8b71519682464d62044c}\label{class_chat_a8b33daf1786a8b71519682464d62044c}} 
+static String {\bfseries ip\+Successor} = null
+\item 
+\mbox{\Hypertarget{class_chat_a318592ab88caa043fa38ae3a5b2222ad}\label{class_chat_a318592ab88caa043fa38ae3a5b2222ad}} 
+static int \hyperlink{class_chat_a318592ab88caa043fa38ae3a5b2222ad}{port\+Successor} = 0
+\begin{DoxyCompactList}\small\item\em process successor port \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_chat_a29acd3e9137ba1a1ea56682229e9271e}\label{class_chat_a29acd3e9137ba1a1ea56682229e9271e}} 
+static String \hyperlink{class_chat_a29acd3e9137ba1a1ea56682229e9271e}{ip\+Predecessor} = null
+\begin{DoxyCompactList}\small\item\em process predecessor ip \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_chat_a171c1e8e84a991d86eea4603ec2242d6}\label{class_chat_a171c1e8e84a991d86eea4603ec2242d6}} 
+static int \hyperlink{class_chat_a171c1e8e84a991d86eea4603ec2242d6}{port\+Predecessor} = 0
+\begin{DoxyCompactList}\small\item\em process predecessor port \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_chat_aef192c9fcd2a24c9a684f1110afd7de4}\label{class_chat_aef192c9fcd2a24c9a684f1110afd7de4}} 
+static String \hyperlink{class_chat_aef192c9fcd2a24c9a684f1110afd7de4}{localhost} = \char`\"{}127.\+0.\+0.\+1\char`\"{}
+\begin{DoxyCompactList}\small\item\em IP information. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{class_chat_aabecdb7e794abb969b3a141365d372fe}\label{class_chat_aabecdb7e794abb969b3a141365d372fe}} 
+static boolean \hyperlink{class_chat_aabecdb7e794abb969b3a141365d372fe}{joined} = false
+\begin{DoxyCompactList}\small\item\em Sentinel for joining chatroom. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{class_chat_a2d05c5a786842fdaabf5d54c5b34f1de}\label{class_chat_a2d05c5a786842fdaabf5d54c5b34f1de}} 
+static final Lock \hyperlink{class_chat_a2d05c5a786842fdaabf5d54c5b34f1de}{mutex} = new Reentrant\+Lock(true)
+\begin{DoxyCompactList}\small\item\em mutex lock \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This program implements a distributed chat. It creates a ring and delivers messages using flooding. 
+
+\begin{DoxyAuthor}{Author}
+Mingtau Li, 011110539 
+
+Mark Spencer Tan, 012192282 
+
+Kevin Duong, 011715000 
+\end{DoxyAuthor}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{class_chat_a2e9b5fbe06ab99eee05f0fc6af6dc887}\label{class_chat_a2e9b5fbe06ab99eee05f0fc6af6dc887}} 
+\index{Chat@{Chat}!Chat@{Chat}}
+\index{Chat@{Chat}!Chat@{Chat}}
+\subsubsection{\texorpdfstring{Chat()}{Chat()}}
+{\footnotesize\ttfamily Chat.\+Chat (\begin{DoxyParamCaption}\item[{String}]{my\+Alias,  }\item[{int}]{my\+Port }\end{DoxyParamCaption})}
+
+Starts the threads with the client and server\+: 
+\begin{DoxyParams}{Parameters}
+{\em my\+Alias} & unique identifier of the process \\
+\hline
+{\em my\+Port} & where the server will listen \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{class_chat_aedb8547771734d3275f8acfe106ba332}\label{class_chat_aedb8547771734d3275f8acfe106ba332}} 
+\index{Chat@{Chat}!J\+S\+O\+N\+Message@{J\+S\+O\+N\+Message}}
+\index{J\+S\+O\+N\+Message@{J\+S\+O\+N\+Message}!Chat@{Chat}}
+\subsubsection{\texorpdfstring{J\+S\+O\+N\+Message()}{JSONMessage()}}
+{\footnotesize\ttfamily static J\+S\+O\+N\+Object Chat.\+J\+S\+O\+N\+Message (\begin{DoxyParamCaption}\item[{String}]{type,  }\item[{String}]{alias,  }\item[{int}]{port,  }\item[{String...}]{msg\+Args }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Creates J\+S\+ON Messages based on type. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em type} & message type \\
+\hline
+{\em alias} & my alias \\
+\hline
+{\em port} & my port \\
+\hline
+{\em msg\+Args} & vararg for additional information \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{class_chat_a67bee28b73b6a5dac87992427e447a83}\label{class_chat_a67bee28b73b6a5dac87992427e447a83}} 
+\index{Chat@{Chat}!valid\+Int@{valid\+Int}}
+\index{valid\+Int@{valid\+Int}!Chat@{Chat}}
+\subsubsection{\texorpdfstring{valid\+Int()}{validInt()}}
+{\footnotesize\ttfamily static int Chat.\+valid\+Int (\begin{DoxyParamCaption}\item[{Scanner}]{in,  }\item[{String}]{message,  }\item[{int...}]{limit }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Asks user for valid numerical input. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em in} & scanner object \\
+\hline
+{\em message} & message displayed to user \\
+\hline
+{\em limit} & optional limit on number length \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+Chat.\+java\end{DoxyCompactItemize}
