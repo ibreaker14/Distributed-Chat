@@ -156,7 +156,7 @@ public class Chat{
 							}
 								
 							break;
-						//leave chatroom
+						//leave chat
 						case "LEAVE":	
 							try{
 								mutex.lock();
@@ -183,21 +183,13 @@ public class Chat{
 
 
 							break;
-						// default behavior for currupted messages
+						// default behavior for corrupted messages
 						default:
 							System.out.print("System has encountered a problem --> ");
 							System.out.println("message"+msg);
 							break;
 					}	
 							
-
-					// close streams
-					oos.close();
-					ois.close();
-
-					//close socket
-					clntSock.close();
-
 				}catch(NullPointerException e){
 					e.printStackTrace();
 					System.out.println("Server exception");
@@ -319,8 +311,8 @@ public class Chat{
 						portPredecessor = myPort; 
 						mutex.unlock();
 
-						socket.close();
-						oos.close();
+						//socket.close();
+						//oos.close();
 
 						System.out.println(myAlias+" ("+myPort+") has left the conversation");
 						
@@ -371,8 +363,6 @@ public class Chat{
 					socket = new Socket(ip,portSuccessor);
 					oos = new ObjectOutputStream(socket.getOutputStream());
 					oos.writeObject(sendObj.toString());
-					socket.close();
-					oos.close();
 					
 				}
 				break;
@@ -386,15 +376,7 @@ public class Chat{
 				}
 				break;
 			}
-
-			
-			//socket.close();
-			ois.close();
-			oos.close();
-
-			//close client socket
-			socket.close();
-
+	
 		} catch (IOException e) {
 			e.printStackTrace();
 		}catch(Exception e){
