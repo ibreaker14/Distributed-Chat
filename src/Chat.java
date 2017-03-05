@@ -464,10 +464,9 @@ public class Chat{
 					params.put("portSuccessor", port);
 
 				}else if(type.equals("PUT")){
-						params.put("aliasSender", alias);
+					params.put("aliasSender", alias);
 					params.put("aliasReceiver", msgArgs[0]);
 					params.put("message", msgArgs[1]);
-
 				}
 			} catch (JSONException e1) {
 				e1.printStackTrace();
