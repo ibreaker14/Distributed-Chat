@@ -86,17 +86,26 @@ public class Chat{
 						//join chat
 						case "JOIN":	
 							try{
-
 								JSONObject acceptObj = JSONMessage("ACCEPT",localhost,portPredecessor);//write accept msg to my pred
 								JSONObject newSuccessorObj = JSONMessage("NEWSUCCESSOR",localhost,((JSONObject)msg.get("parameters")).getInt("myPort")); //new predecessor
 
+								//prints out who is trying to join
+								String joinalias = ((JSONObject)msg.get("parameters")).getString("myAlias");
+								System.out.println("\n" + joinalias + " joined the chat.");
+
 								mutex.lock();
 								//update predecessor
-								portPredecessor = ((JSONObject)msg.get("parameters")).getInt("myPort"); 
+								portPredecessor = ((JSONObject)msg.get("parameters")).getInt("myPort");
+
+								//updates successor as well if this is the first join in the room
+								if(portSuccessor == myPort){
+									portSuccessor = portPredecessor;
+									joined = true;
+								}
 								mutex.unlock();
 
 								//send to my pred (to client: my pred)
-								oos.writeObject(acceptObj.toString()); 
+								oos.writeObject(acceptObj.toString());
 
 								//close sockets
 								clntSock.close();
@@ -129,7 +138,6 @@ public class Chat{
 						//send message
 						case "PUT":		
 							try {
-								
 								//sender information
 								String message = ((JSONObject)msg.get("parameters")).getString("message");
 								String receiverAlias = ((JSONObject)msg.get("parameters")).getString("aliasReceiver");
@@ -138,18 +146,18 @@ public class Chat{
 								//if sender is self, it client is not in chat
 								if(senderAlias.equalsIgnoreCase(myAlias)) {
 									System.out.println("\nClient has either been disconnected or cannot be found");
-									System.out.println("\nWhat would you like to do? \n 1) LEAVE\n 2) SEND MESSAGE\n 3) DISPLAY PROFILE");
+									System.out.println("\n"+myAlias + " What would you like to do? \n 1) LEAVE\n 2) SEND MESSAGE\n 3) DISPLAY PROFILE");
 								//if I am the receiver, display message
 								}else if(receiverAlias.equalsIgnoreCase(myAlias)) {
 									System.out.println("\n--> "+senderAlias+": "+message);
-									System.out.println("\nWhat would you like to do? \n 1) LEAVE\n 2) SEND MESSAGE\n 3) DISPLAY PROFILE");
-									
+									System.out.println("\n" + myAlias + " What would you like to do? \n 1) LEAVE\n 2) SEND MESSAGE\n 3) DISPLAY PROFILE");
+
 								}else {
 									//send messages to successor
+									System.out.println("I am not" + receiverAlias);
 									clntSock = new Socket(localhost,portSuccessor);
 									oos = new ObjectOutputStream(clntSock.getOutputStream());
 									oos.writeObject(msg.toString());
-
 								}
 							} catch (JSONException e) {
 								e.printStackTrace();
@@ -188,16 +196,18 @@ public class Chat{
 							System.out.print("System has encountered a problem --> ");
 							System.out.println("message"+msg);
 							break;
-					}	
-							
+					}
+					oos.close();
+					ois.close();
 				}catch(NullPointerException e){
 					e.printStackTrace();
 					System.out.println("Server exception");
 				}catch(ConnectException e){
 					System.out.println("This port does not exist");
 				}
+				clntSock.close();
 			}
-			
+
 			}catch(IOException e){
 			e.printStackTrace();
 			}catch(ClassNotFoundException e){
@@ -240,7 +250,7 @@ public class Chat{
 	public void run(){
 		while (true) {
 		try {
-			int useroption = validInt(scan ,"\nWhat would you like to do? \n"+(joined ? " 1) LEAVE\n" : " 1) JOIN\n")+" 2) SEND MESSAGE\n 3) DISPLAY PROFILE", 3);
+			int useroption = validInt(scan ,"\n" + myAlias + " What would you like to do? \n"+(joined ? " 1) LEAVE\n" : " 1) JOIN\n")+" 2) SEND MESSAGE\n 3) DISPLAY PROFILE", 3);
 
 			switch(useroption){
 			case 1: //JOIN or LEAVE
@@ -248,7 +258,7 @@ public class Chat{
 
 					//JOIN
 					int port = validInt(scan, "Enter the port you would like to join");
-					
+
 					try{
 						// Connect to the server socket
 						ip = InetAddress.getByName(localhost);
@@ -257,19 +267,19 @@ public class Chat{
 						System.out.println(myAlias + " has connected to (remote socket address): "+socket.getRemoteSocketAddress());
 
 						// Create streams
-						oos = new ObjectOutputStream(socket.getOutputStream()); 
-						ois = new ObjectInputStream(socket.getInputStream()); 
+						oos = new ObjectOutputStream(socket.getOutputStream());
+						ois = new ObjectInputStream(socket.getInputStream());
 
 						//Create JSON Message. Attempt to join
-						JSONObject joinObj = JSONMessage("JOIN",myAlias, myPort); 
-						oos.writeObject(joinObj.toString()); //send To_Join's port 
+						JSONObject joinObj = JSONMessage("JOIN",myAlias, myPort);
+						oos.writeObject(joinObj.toString()); //send To_Join's port
 
 						mutex.lock();
 						//update successor
-						portSuccessor = port;	
+						portSuccessor = port;
 						mutex.unlock();
 
-						
+
 						JSONObject acceptedMsg = new JSONObject(ois.readObject().toString()); //from server: accept (ip, portPred)
 						mutex.lock();
 						portPredecessor = ((JSONObject)acceptedMsg.get("parameters")).getInt("portPred");
@@ -295,27 +305,27 @@ public class Chat{
 						ip = InetAddress.getByName(localhost);
 
 						//connect to my successor
-						socket = new Socket(ip,portSuccessor); 
+						socket = new Socket(ip,portSuccessor);
 
 						// Create streams
-						oos = new ObjectOutputStream(socket.getOutputStream()); 
-						ois = new ObjectInputStream(socket.getInputStream()); 
+						oos = new ObjectOutputStream(socket.getOutputStream());
+						ois = new ObjectInputStream(socket.getInputStream());
 
 						//Create JSON Message. Attempt to leave
-						JSONObject leaveObj = JSONMessage("LEAVE",localhost, portPredecessor); 
-						oos.writeObject(leaveObj.toString()); 
+						JSONObject leaveObj = JSONMessage("LEAVE",localhost, portPredecessor);
+						oos.writeObject(leaveObj.toString());
 
 						//redirect predecessor and successor to myself
 						mutex.lock();
 						portSuccessor = myPort;
-						portPredecessor = myPort; 
+						portPredecessor = myPort;
 						mutex.unlock();
 
 						//socket.close();
 						//oos.close();
 
 						System.out.println(myAlias+" ("+myPort+") has left the conversation");
-						
+
 						joined = false; //upon successful leave, joined becomes false
 
 					}catch(ConnectException e){
@@ -338,7 +348,7 @@ public class Chat{
 					//saves receiver alias
 					String receiverAlias = null;
 					scan.nextLine();
-					
+
 					//asks user for message. message is not valid if you send to yourself
 					do{
 						System.out.println("Who do you want to send a message to?");
@@ -354,21 +364,21 @@ public class Chat{
 					//asks user for message
 					System.out.println("What do you want to say?");
 					String message = scan.nextLine();
-					System.out.println("Message sent");
 
-					//Create JSON Message for senging message
-					JSONObject sendObj = JSONMessage("PUT",myAlias, myPort,receiverAlias.trim(),message.trim()); 
+					//Create JSON Message for sending message
+					JSONObject sendObj = JSONMessage("PUT",myAlias, myPort,receiverAlias.trim(),message.trim());
 
 					//send message to successor
 					socket = new Socket(ip,portSuccessor);
+					System.out.println("Socket connected...");
 					oos = new ObjectOutputStream(socket.getOutputStream());
 					oos.writeObject(sendObj.toString());
-					
+					System.out.println("Message sent");
 				}
 				break;
 
 			case 3: //DISPLAY PROFILE
-				
+
 				//display alias, port, predecessor, and successsor
 				System.out.println("\n" + myAlias.toUpperCase() +" at port: " +myPort);
 				if(joined){
@@ -376,11 +386,11 @@ public class Chat{
 				}
 				break;
 			}
-	
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}catch(Exception e){
-			//e.printStackTrace();
+			e.printStackTrace();
 		}
 		}
 
