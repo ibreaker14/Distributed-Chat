@@ -251,6 +251,8 @@ public class Chat{
 		while (true) {
 		try {
 			int useroption = validInt(scan ,"\n" + myAlias + " What would you like to do? \n"+(joined ? " 1) LEAVE\n" : " 1) JOIN\n")+" 2) SEND MESSAGE\n 3) DISPLAY PROFILE", 3);
+			// Connect to the server socket
+			ip = InetAddress.getByName(localhost);
 
 			switch(useroption){
 			case 1: //JOIN or LEAVE
@@ -260,8 +262,6 @@ public class Chat{
 					int port = validInt(scan, "Enter the port you would like to join");
 
 					try{
-						// Connect to the server socket
-						ip = InetAddress.getByName(localhost);
 
 						socket = new Socket(ip,port);
 						System.out.println(myAlias + " has connected to (remote socket address): "+socket.getRemoteSocketAddress());
@@ -301,9 +301,6 @@ public class Chat{
 						// Leave the room
 
 					try{
-						// Connect to the server socket
-						ip = InetAddress.getByName(localhost);
-
 						//connect to my successor
 						socket = new Socket(ip,portSuccessor);
 
@@ -366,7 +363,7 @@ public class Chat{
 					String message = scan.nextLine();
 
 					//Create JSON Message for sending message
-					JSONObject sendObj = JSONMessage("PUT",myAlias, myPort,receiverAlias.trim(),message.trim());
+					JSONObject sendObj = JSONMessage("PUT",myAlias, myPort,receiverAlias, message);
 
 					//send message to successor
 					socket = new Socket(ip,portSuccessor);
