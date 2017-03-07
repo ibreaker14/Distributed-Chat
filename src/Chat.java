@@ -63,155 +63,117 @@ public class Chat{
 		**********************************/   		
 		public void run() {     
 			try{
-			//create the server socket
-			servSock = new ServerSocket(myPort);
-			while (true) {
-				// Get client connections
-				clntSock = servSock.accept(); 
-				try{
+				//create the server socket
+				servSock = new ServerSocket(myPort);
+				while (true) {
+					// Get client connections
+					clntSock = servSock.accept();
 					//Create io streams
-					ObjectInputStream  ois = new ObjectInputStream(clntSock.getInputStream());
+					ObjectInputStream ois = new ObjectInputStream(clntSock.getInputStream());
 					ObjectOutputStream oos = new ObjectOutputStream(clntSock.getOutputStream());
 
 					//read json object
-					try{
-						msg = new JSONObject(ois.readObject().toString());
-						operation = msg.getString("type");
-					}catch(JSONException e){
-						e.printStackTrace();
-					}
+					msg = new JSONObject(ois.readObject().toString());
+					operation = msg.getString("type");
 
 					//does operations based on json commands
-					switch(operation){ 
+					switch (operation) {
 						//join chat
-						case "JOIN":	
-							try{
-								JSONObject acceptObj = JSONMessage("ACCEPT",localhost,portPredecessor);//write accept msg to my pred
-								JSONObject newSuccessorObj = JSONMessage("NEWSUCCESSOR",localhost,((JSONObject)msg.get("parameters")).getInt("myPort")); //new predecessor
+						case "JOIN":
+							JSONObject acceptObj = JSONMessage("ACCEPT", localhost, portPredecessor);//write accept msg to my pred
+							JSONObject newSuccessorObj = JSONMessage("NEWSUCCESSOR", localhost, ((JSONObject) msg.get("parameters")).getInt("myPort")); //new predecessor
 
-								//prints out who is trying to join
-								String joinalias = ((JSONObject)msg.get("parameters")).getString("myAlias");
-								System.out.println("\n" + joinalias + " joined the chat.");
+							//prints out who is trying to join
+							String joinalias = ((JSONObject) msg.get("parameters")).getString("myAlias");
+							System.out.println("\n" + joinalias + " joined the chat.");
 
-								mutex.lock();
-								//update predecessor
-								portPredecessor = ((JSONObject)msg.get("parameters")).getInt("myPort");
+							mutex.lock();
+							//update predecessor
+							portPredecessor = ((JSONObject) msg.get("parameters")).getInt("myPort");
 
-								//updates successor as well if this is the first join in the room
-								if(portSuccessor == myPort){
-									portSuccessor = portPredecessor;
-									joined = true;
-								}
-								mutex.unlock();
-
-								//send to my pred (to client: my pred)
-								oos.writeObject(acceptObj.toString());
-
-								//close sockets
-								clntSock.close();
-
-								// open new socket and send message to predecessor for acceptance request
-								clntSock = new Socket(localhost,((JSONObject)acceptObj.get("parameters")).getInt("portPred")); //send to my old predecessor
-								oos = new ObjectOutputStream(clntSock.getOutputStream());
-								oos.writeObject(newSuccessorObj.toString());
-
-							}catch(IOException e){
-								e.printStackTrace();
-							}catch(JSONException e){
-								e.printStackTrace();
+							//updates successor as well if this is the first join in the room
+							if (portSuccessor == myPort) {
+								portSuccessor = portPredecessor;
+								joined = true;
 							}
+							mutex.unlock();
 
+							//send to my pred (to client: my pred)
+							oos.writeObject(acceptObj.toString());
+
+							//close sockets
+							clntSock.close();
+
+							// open new socket and send message to predecessor for acceptance request
+							clntSock = new Socket(localhost, ((JSONObject) acceptObj.get("parameters")).getInt("portPred")); //send to my old predecessor
+							oos = new ObjectOutputStream(clntSock.getOutputStream());
+							oos.writeObject(newSuccessorObj.toString());
 							break;
 
 						//new successor
-						case "NEWSUCCESSOR":	
-							try{
-								mutex.lock();
-								// connect to new successor
-								portSuccessor = ((JSONObject)msg.get("parameters")).getInt("portSuccessor");
-								mutex.unlock();
-
-							}catch(JSONException e){
-								e.printStackTrace();
-							}
+						case "NEWSUCCESSOR":
+							mutex.lock();
+							// connect to new successor
+							portSuccessor = ((JSONObject) msg.get("parameters")).getInt("portSuccessor");
+							mutex.unlock();
 							break;
+
 						//send message
-						case "PUT":		
-							try {
-								//sender information
-								String message = ((JSONObject)msg.get("parameters")).getString("message");
-								String receiverAlias = ((JSONObject)msg.get("parameters")).getString("aliasReceiver");
-								String senderAlias = ((JSONObject)msg.get("parameters")).getString("aliasSender");
+						case "PUT":
+							//sender information
+							String message = ((JSONObject) msg.get("parameters")).getString("message");
+							String receiverAlias = ((JSONObject) msg.get("parameters")).getString("aliasReceiver");
+							String senderAlias = ((JSONObject) msg.get("parameters")).getString("aliasSender");
 
-								//if sender is self, it client is not in chat
-								if(senderAlias.equalsIgnoreCase(myAlias)) {
-									System.out.println("\nClient has either been disconnected or cannot be found");
-									System.out.println("\n"+myAlias + " What would you like to do? \n 1) LEAVE\n 2) SEND MESSAGE\n 3) DISPLAY PROFILE");
+							//if sender is self, it client is not in chat
+							if (senderAlias.equalsIgnoreCase(myAlias)) {
+								System.out.println("\nClient has either been disconnected or cannot be found");
+								System.out.println("\n" + myAlias + " What would you like to do? \n 1) LEAVE\n 2) SEND MESSAGE\n 3) DISPLAY PROFILE");
 								//if I am the receiver, display message
-								}else if(receiverAlias.equalsIgnoreCase(myAlias)) {
-									System.out.println("\n--> "+senderAlias+": "+message);
-									System.out.println("\n" + myAlias + " What would you like to do? \n 1) LEAVE\n 2) SEND MESSAGE\n 3) DISPLAY PROFILE");
+							} else if (receiverAlias.equalsIgnoreCase(myAlias)) {
+								System.out.println("\n--> " + senderAlias + ": " + message);
+								System.out.println("\n" + myAlias + " What would you like to do? \n 1) LEAVE\n 2) SEND MESSAGE\n 3) DISPLAY PROFILE");
 
-								}else {
-									//send messages to successor
-									System.out.println("I am not" + receiverAlias);
-									clntSock = new Socket(localhost,portSuccessor);
-									oos = new ObjectOutputStream(clntSock.getOutputStream());
-									oos.writeObject(msg.toString());
-								}
-							} catch (JSONException e) {
-								e.printStackTrace();
-							}
-								
-							break;
-						//leave chat
-						case "LEAVE":	
-							try{
-								mutex.lock();
-								//connect to new predecessor
-								portPredecessor = ((JSONObject)msg.get("parameters")).getInt("portPred");
-								mutex.unlock();
-								//close socket
-								clntSock.close();
-
-								//send new successor info to new predecessor
-								clntSock = new Socket(localhost,portPredecessor); //send to my updated predecessor
-								JSONObject newSuccessorObj = JSONMessage("NEWSUCCESSOR",localhost,myPort); //old predecessor's new successor is me
+							} else {
+								//send messages to successor
+								System.out.println("I am not" + receiverAlias);
+								clntSock = new Socket(localhost, portSuccessor);
 								oos = new ObjectOutputStream(clntSock.getOutputStream());
-								oos.writeObject(newSuccessorObj.toString());
-
-								Scanner scan = new Scanner(System.in);
-
-
-							}catch(JSONException e){
-								e.printStackTrace();
-							}catch(Exception e){
-								e.printStackTrace();
+								oos.writeObject(msg.toString());
 							}
-
-
 							break;
+
+						//leave chat
+						case "LEAVE":
+							mutex.lock();
+							//connect to new predecessor
+							portPredecessor = ((JSONObject) msg.get("parameters")).getInt("portPred");
+							mutex.unlock();
+							//close socket
+							clntSock.close();
+
+							//send new successor info to new predecessor
+							clntSock = new Socket(localhost, portPredecessor); //send to my updated predecessor
+							newSuccessorObj = JSONMessage("NEWSUCCESSOR", localhost, myPort); //old predecessor's new successor is me
+							oos = new ObjectOutputStream(clntSock.getOutputStream());
+							oos.writeObject(newSuccessorObj.toString());
+
+							Scanner scan = new Scanner(System.in);
+							break;
+
 						// default behavior for corrupted messages
 						default:
 							System.out.print("System has encountered a problem --> ");
-							System.out.println("message"+msg);
+							System.out.println("message" + msg);
 							break;
 					}
-					oos.close();
-					ois.close();
-				}catch(NullPointerException e){
-					e.printStackTrace();
-					System.out.println("Server exception");
-				}catch(ConnectException e){
-					System.out.println("This port does not exist");
 				}
-				clntSock.close();
-			}
-
 			}catch(IOException e){
-			e.printStackTrace();
+				e.printStackTrace();
 			}catch(ClassNotFoundException e){
-			e.printStackTrace();
+				e.printStackTrace();
+			}catch (JSONException e){
+				e.printStackTrace();
 			}
 		}
 	}
@@ -248,151 +210,130 @@ public class Chat{
 	* \brief It allows the user to interact with the system. 
 	**********************************/    
 	public void run(){
-		while (true) {
-		try {
-			int useroption = validInt(scan ,"\n" + myAlias + " What would you like to do? \n"+(joined ? " 1) LEAVE\n" : " 1) JOIN\n")+" 2) SEND MESSAGE\n 3) DISPLAY PROFILE", 3);
-			// Connect to the server socket
-			ip = InetAddress.getByName(localhost);
+		try{
+			while (true) {
+				int useroption = validInt(scan, "\n" + myAlias + " What would you like to do? \n" + (joined ? " 1) LEAVE\n" : " 1) JOIN\n") + " 2) SEND MESSAGE\n 3) DISPLAY PROFILE", 3);
+				// Connect to the server socket
+				ip = InetAddress.getByName(localhost);
 
-			switch(useroption){
-			case 1: //JOIN or LEAVE
-				if(!joined){
+				switch (useroption) {
+					case 1: //JOIN or LEAVE
+						if (!joined) {
 
-					//JOIN
-					int port = validInt(scan, "Enter the port you would like to join");
+							//JOIN
+							int port = validInt(scan, "Enter the port you would like to join");
 
-					try{
+							socket = new Socket(ip, port);
+							System.out.println(myAlias + " has connected to (remote socket address): " + socket.getRemoteSocketAddress());
 
-						socket = new Socket(ip,port);
-						System.out.println(myAlias + " has connected to (remote socket address): "+socket.getRemoteSocketAddress());
+							// Create streams
+							oos = new ObjectOutputStream(socket.getOutputStream());
+							ois = new ObjectInputStream(socket.getInputStream());
 
-						// Create streams
-						oos = new ObjectOutputStream(socket.getOutputStream());
-						ois = new ObjectInputStream(socket.getInputStream());
+							//Create JSON Message. Attempt to join
+							JSONObject joinObj = JSONMessage("JOIN", myAlias, myPort);
+							oos.writeObject(joinObj.toString()); //send To_Join's port
 
-						//Create JSON Message. Attempt to join
-						JSONObject joinObj = JSONMessage("JOIN",myAlias, myPort);
-						oos.writeObject(joinObj.toString()); //send To_Join's port
-
-						mutex.lock();
-						//update successor
-						portSuccessor = port;
-						mutex.unlock();
+							mutex.lock();
+							//update successor
+							portSuccessor = port;
+							mutex.unlock();
 
 
-						JSONObject acceptedMsg = new JSONObject(ois.readObject().toString()); //from server: accept (ip, portPred)
-						mutex.lock();
-						portPredecessor = ((JSONObject)acceptedMsg.get("parameters")).getInt("portPred");
-						mutex.unlock();
-						socket.close();
+							JSONObject acceptedMsg = new JSONObject(ois.readObject().toString()); //from server: accept (ip, portPred)
+							mutex.lock();
+							portPredecessor = ((JSONObject) acceptedMsg.get("parameters")).getInt("portPred");
+							mutex.unlock();
+							socket.close();
 
-						joined = true; //if exception occurs before completion of join, joined stays false
+							joined = true; //if exception occurs before completion of join, joined stays false
 
-						System.out.println("\n(PRED, SUCC): "+portPredecessor+", " +portSuccessor);
+							System.out.println("\n(PRED, SUCC): " + portPredecessor + ", " + portSuccessor);
 
-					}catch(ConnectException e){
-						System.out.println("Can't connect to this port");
-					}catch(Exception e){
-						e.printStackTrace();
-					}
-				}else{//if !joined
-					//LEAVE
+						} else {//if !joined
+							//LEAVE the room
 
-						// Leave the room
+							//connect to my successor
+							socket = new Socket(ip, portSuccessor);
 
-					try{
-						//connect to my successor
-						socket = new Socket(ip,portSuccessor);
+							// Create streams
+							oos = new ObjectOutputStream(socket.getOutputStream());
+							ois = new ObjectInputStream(socket.getInputStream());
 
-						// Create streams
-						oos = new ObjectOutputStream(socket.getOutputStream());
-						ois = new ObjectInputStream(socket.getInputStream());
+							//Create JSON Message. Attempt to leave
+							JSONObject leaveObj = JSONMessage("LEAVE", localhost, portPredecessor);
+							oos.writeObject(leaveObj.toString());
 
-						//Create JSON Message. Attempt to leave
-						JSONObject leaveObj = JSONMessage("LEAVE",localhost, portPredecessor);
-						oos.writeObject(leaveObj.toString());
+							//redirect predecessor and successor to myself
+							mutex.lock();
+							portSuccessor = myPort;
+							portPredecessor = myPort;
+							mutex.unlock();
 
-						//redirect predecessor and successor to myself
-						mutex.lock();
-						portSuccessor = myPort;
-						portPredecessor = myPort;
-						mutex.unlock();
+							//socket.close();
+							//oos.close();
 
-						//socket.close();
-						//oos.close();
+							System.out.println(myAlias + " (" + myPort + ") has left the conversation");
 
-						System.out.println(myAlias+" ("+myPort+") has left the conversation");
-
-						joined = false; //upon successful leave, joined becomes false
-
-					}catch(ConnectException e){
-						System.out.println("Can't connect to this port");
-					}catch(Exception e){
-						e.printStackTrace();
-						System.out.println("sumting wong");
-					}
-
-				}
-
-				break;
-
-			case 2: //SEND MESSAGE
-				if(!joined){
-					System.out.println("\nYou must join a port first");
-				}else{
-					//stops client from sending invalid messages
-					boolean validMessage = true;
-					//saves receiver alias
-					String receiverAlias = null;
-					scan.nextLine();
-
-					//asks user for message. message is not valid if you send to yourself
-					do{
-						System.out.println("Who do you want to send a message to?");
-						receiverAlias = scan.nextLine();
-						if(receiverAlias.equalsIgnoreCase(myAlias)){
-							System.out.println("\nYou cannot send messages to yourself!\n");
-							validMessage = false;
-						}else{
-							validMessage = true;
+							joined = false; //upon successful leave, joined becomes false
 						}
-					}while(!validMessage);
+						break;
 
-					//asks user for message
-					System.out.println("What do you want to say?");
-					String message = scan.nextLine();
+					case 2: //SEND MESSAGE
+						if (!joined) {
+							System.out.println("\nYou must join a port first");
+						} else {
+							//stops client from sending invalid messages
+							boolean validMessage = true;
+							//saves receiver alias
+							String receiverAlias = null;
+							scan.nextLine();
 
-					//Create JSON Message for sending message
-					JSONObject sendObj = JSONMessage("PUT",myAlias, myPort,receiverAlias, message);
+							//asks user for message. message is not valid if you send to yourself
+							do {
+								System.out.println("Who do you want to send a message to?");
+								receiverAlias = scan.nextLine();
+								if (receiverAlias.equalsIgnoreCase(myAlias)) {
+									System.out.println("\nYou cannot send messages to yourself!\n");
+									validMessage = false;
+								} else {
+									validMessage = true;
+								}
+							} while (!validMessage);
 
-					//send message to successor
-					socket = new Socket(ip,portSuccessor);
-					System.out.println("Socket connected...");
-					oos = new ObjectOutputStream(socket.getOutputStream());
-					oos.writeObject(sendObj.toString());
-					System.out.println("Message sent");
+							//asks user for message
+							System.out.println("What do you want to say?");
+							String message = scan.nextLine();
+
+							//Create JSON Message for sending message
+							JSONObject sendObj = JSONMessage("PUT", myAlias, myPort, receiverAlias, message);
+
+							//send message to successor
+							socket = new Socket(ip, portSuccessor);
+							System.out.println("Socket connected...");
+							oos = new ObjectOutputStream(socket.getOutputStream());
+							oos.writeObject(sendObj.toString());
+							System.out.println("Message sent");
+						}
+						break;
+
+					case 3: //DISPLAY PROFILE
+						//display alias, port, predecessor, and successsor
+						System.out.println("\n" + myAlias.toUpperCase() + " at port: " + myPort);
+						if (joined) {
+							System.out.println("Predecessor: " + portPredecessor + "  Successor: " + portSuccessor);
+						}
+						break;
+					}
 				}
-				break;
-
-			case 3: //DISPLAY PROFILE
-
-				//display alias, port, predecessor, and successsor
-				System.out.println("\n" + myAlias.toUpperCase() +" at port: " +myPort);
-				if(joined){
-					System.out.println("Predecessor: "+portPredecessor+"  Successor: "+portSuccessor);
-				}
-				break;
+			}catch(IOException e) {
+				e.printStackTrace();
+			}catch(Exception e){
+				e.printStackTrace();
 			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}catch(Exception e){
-			e.printStackTrace();
 		}
-		}
+	}
 
-	}
-	}
 	
 	
 	/*****************************//**
